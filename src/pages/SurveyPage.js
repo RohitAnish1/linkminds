@@ -41,6 +41,18 @@ const SurveyForm = ({ onMatch }) => {
     hobbies: '',
   });
 
+  const hobbiesOptions = [
+    'Reading',
+    'Traveling',
+    'Sports',
+    'Music',
+    'Art',
+    'Gaming',
+    'Cooking',
+    'Dancing',
+    'Photography',
+    'Fitness',
+  ];
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -118,13 +130,18 @@ const SurveyForm = ({ onMatch }) => {
         <option value="Indoor">Indoor</option>
         <option value="Outdoor">Outdoor</option>
       </select>
-      <input
-        type="text"
-        value={questions.hobbies}
-        onChange={(e) => setQuestions({ ...questions, hobbies: e.target.value })}
-        placeholder="List some of your hobbies"
-        required
-      />
+      <select
+          value={questions.hobbies}
+          onChange={(e) => setQuestions({ ...questions, hobbies: e.target.value })}
+          required
+        >
+          <option value="">Select Your Hobby</option>
+          {hobbiesOptions.map((hobby) => (
+            <option key={hobby} value={hobby}>
+              {hobby}
+            </option>
+          ))}
+        </select>
       <button type="submit">Submit</button>
     </form>
   );

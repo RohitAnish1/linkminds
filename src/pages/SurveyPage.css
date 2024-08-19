@@ -61,3 +61,24 @@
     font-style: italic;
     margin-top: 15px;
 }
+.hobbies-select {
+    display: none; /* Hidden by default */
+    width: 200px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+  }
+  
+  .hobbies-select.open {
+    display: block; /* Show the dropdown when open */
+  }
+  
+  .hobbies-select option {
+    padding: 4px 8px;
+    cursor: pointer;
+  }
+  
+  .hobbies-select option:hover {
+    background-color: #f0f0f0;
+  }

@@ -1,34 +1,66 @@
-// src/matching.js
-import { collection, getDocs, query } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where } from 'firebase/firestore';
 import { db } from './firebase';
 
 export const matchUsers = async (currentUserName) => {
   const users = [];
-  const q = query(collection(db, 'users'));
-
-  const querySnapshot = await getDocs(q);
-  querySnapshot.forEach((doc) => users.push({ id: doc.id, ...doc.data() }));
+  const usersSnapshot = await getDocs(collection(db, 'users'));
+  usersSnapshot.forEach((doc) => users.push({ id: doc.id, ...doc.data() }));
 
   // Find the current user based on the name
-  const currentUser = users.find(user => user.name === currentUserName);
+  const currentUser = users.find((user) => user.name === currentUserName);
   if (!currentUser) return null;
 
-  // Simple matching logic based on similar social preference and hobbies
-  const potentialMatches = users.filter(user => user.name !== currentUserName)
-    .map(user => {
+  // Fetch matched users from the collection
+  const matchedUsersSnapshot = await getDocs(collection(db, 'matchedUsers'));
+  const matchedUsers = matchedUsersSnapshot.docs.reduce((acc, doc) => {
+    const data = doc.data();
+    if (!acc[data.name]) {
+      acc[data.name] = [];
+    }
+    acc[data.name].push(data.matchedUser);
+    return acc;
+  }, {});
+
+  // Filter out users who are already matched
+  const potentialMatches = users
+    .filter((user) => user.name !== currentUserName)
+    .map((user) => {
       let score = 0;
       if (user.socialPreference === currentUser.socialPreference) score += 1;
       if (user.activityPreference === currentUser.activityPreference) score += 1;
 
-      // Ensure hobbies are treated as an array of strings
-      const userHobbies = (user.hobbies || '').split(',').map(hobby => hobby.trim());
-      const currentUserHobbies = (currentUser.hobbies || '').split(',').map(hobby => hobby.trim());
+      const userHobbies = Array.isArray(user.hobbies) ? user.hobbies : [];
+      const currentUserHobbies = Array.isArray(currentUser.hobbies) ? currentUser.hobbies : [];
 
-      if (userHobbies.some(hobby => currentUserHobbies.includes(hobby))) score += 1;
+      if (userHobbies.some((hobby) => currentUserHobbies.includes(hobby))) score += 1;
+
       return { ...user, score };
     });
 
-  // Sort potential matches by score and return the best match
-  potentialMatches.sort((a, b) => b.score - a.score);
-  return { name: currentUser.name, matchedUser: potentialMatches[0] };
+  // Sort potential matches by score and then by number of matches
+  potentialMatches.sort((a, b) => {
+    if (b.score === a.score) {
+      // Compare the number of matches
+      const aMatches = (matchedUsers[a.name] || []).length;
+      const bMatches = (matchedUsers[b.name] || []).length;
+      return aMatches - bMatches;
+    }
+    return b.score - a.score;
+  });
+
+  const matchedUser = potentialMatches[0];
+
+  if (matchedUser) {
+    // Save the matched users to the 'matchedUsers' collection
+    await addDoc(collection(db, 'matchedUsers'), {
+      name: currentUser.name,
+      matchedUser: matchedUser.name,
+    });
+    await addDoc(collection(db, 'matchedUsers'), {
+      name: matchedUser.name,
+      matchedUser: currentUser.name,
+    });
+  }
+
+  return matchedUser ? { name: currentUser.name, matchedUser } : null;
 };
