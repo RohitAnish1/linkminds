@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth, provider } from '../firebase'; // Assuming you have Firebase and Google Auth provider setup
 import { signInWithPopup } from 'firebase/auth';
-
+import './AuthPage.css';
 export const AuthPage = () => {
   const navigate = useNavigate();
 
