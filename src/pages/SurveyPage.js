@@ -1,9 +1,10 @@
 // src/components/SurveyPage.js
 import React, { useState } from 'react';
 import { db } from '../firebase';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { matchUsers } from '../matching'; // Assuming matching logic is in matching.js
 import './SurveyPage.css';
+
 // MatchResults Component
 const MatchResults = ({ match }) => {
   if (!match) return null;
@@ -42,6 +43,17 @@ const SurveyForm = ({ onMatch }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Check if the user is already matched
+    const matchedUsersQuery = query(collection(db, 'matchedUsers'), where('name', '==', name));
+    const matchedUsersSnapshot = await getDocs(matchedUsersQuery);
+
+    if (!matchedUsersSnapshot.empty) {
+      alert('You have already been matched!');
+      return;
+    }
+
+    // Save the survey data
     await addDoc(collection(db, 'users'), {
       name,
       gender,
@@ -51,7 +63,22 @@ const SurveyForm = ({ onMatch }) => {
 
     // Trigger matching and pass the result to the parent component
     const match = await matchUsers(name); // Pass the user's name to match them with others
-    onMatch(match);
+
+    if (match) {
+      // Add the matched pair to the matchedUsers collection
+      await addDoc(collection(db, 'matchedUsers'), {
+        name: match.name,
+        matchedWith: match.matchedUser.name,
+      });
+
+      await addDoc(collection(db, 'matchedUsers'), {
+        name: match.matchedUser.name,
+        matchedWith: match.name,
+      });
+
+      // Call the onMatch function to update the UI
+      onMatch(match);
+    }
   };
 
   return (
