@@ -6,14 +6,26 @@ import { matchUsers } from '../matching'; // Assuming matching logic is in match
 import './SurveyPage.css';
 // MatchResults Component
 const MatchResults = ({ match }) => {
+  if (!match) return null;
+
   return (
-    <div>
-      <h2>Match Result</h2>
-      {match && (
-        <div>
-          <p>{match.name} is matched with {match.matchedUser.name}</p>
+    <div className="match-results">
+      <h2>Congratulations!</h2>
+      <div className="match-details">
+        <p className="match-intro">
+          Hey {match.name}, you are matched with {match.matchedUser.name}!
+        </p>
+        <div className="matched-user-details">
+          <p><strong>Name:</strong> {match.matchedUser.name}</p>
+          <p><strong>Gender:</strong> {match.matchedUser.gender}</p>
+          <p><strong>Social Preference:</strong> {match.matchedUser.socialPreference}</p>
+          <p><strong>Activity Preference:</strong> {match.matchedUser.activityPreference}</p>
+          <p><strong>Hobbies:</strong> {match.matchedUser.hobbies}</p>
         </div>
-      )}
+        <p className="invitation-message">
+          We invite you to attend the program together and hope you both could get to know each other more!
+        </p>
+      </div>
     </div>
   );
 };
@@ -100,7 +112,7 @@ export const SurveyPage = () => {
   };
 
   return (
-    <div>
+    <div className="survey-page"> {/* Added this wrapper */}
       <h1>Survey Page</h1>
       <SurveyForm onMatch={handleMatch} />
       {match && <MatchResults match={match} />}

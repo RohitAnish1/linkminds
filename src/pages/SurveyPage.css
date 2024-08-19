@@ -1,111 +1,63 @@
-/* General Styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-    color: #333;
-}
-
-h1, h2 {
+.survey-page {
+    max-width: 400px; /* Adjust this width according to your design */
+    margin: 0 auto;
+    padding: 20px;
     text-align: center;
-    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
 }
 
-button {
-    display: block;
-    margin: 20px auto;
-    padding: 10px 20px;
-    font-size: 18px;
-    color: #fff;
-    background-color: #007BFF;
-    border: none;
+.survey-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.survey-form input,
+.survey-form select,
+.survey-form button {
+    padding: 10px;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s;
+    border: 1px solid #ccc;
 }
 
-button:hover {
+.survey-form button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.survey-form button:hover {
     background-color: #0056b3;
 }
 
-input, select {
-    width: calc(100% - 40px);
-    margin: 10px 20px;
-    padding: 10px;
+.match-results {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #e9ecef;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.match-results h2 {
+    font-size: 24px;
+    color: #333;
+}
+
+.match-intro {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.matched-user-details {
+    margin-top: 10px;
+}
+
+.invitation-message {
     font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-/* Desktop Styles */
-@media screen and (min-width: 768px) {
-    div {
-        max-width: 500px;
-        margin: 40px auto;
-        padding: 20px;
-        background-color: #fff;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-    }
-
-    input, select, button {
-        width: calc(100% - 40px);
-        margin: 10px auto;
-        padding: 15px;
-        font-size: 18px;
-    }
-}
-
-/* Mobile Styles */
-@media screen and (max-width: 767px) {
-    div {
-        margin: 20px 10px;
-        padding: 15px;
-        background-color: #fff;
-        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-    }
-
-    input, select, button {
-        width: calc(100% - 20px);
-        margin: 5px 10px;
-        padding: 10px;
-        font-size: 16px;
-    }
-
-    h1, h2 {
-        font-size: 22px;
-    }
-
-    button {
-        padding: 12px 16px;
-    }
-}
-
-/* Specific Styles for AuthPage */
-#authPage {
-    background-color: #e3f2fd;
-    border-radius: 10px;
-}
-
-#authPage button {
-    background-color: #4285F4;
-}
-
-/* Specific Styles for SurveyPage */
-#surveyPage h1 {
-    color: #007BFF;
-}
-
-#surveyPage select {
-    margin-bottom: 15px;
-}
-
-#surveyPage button {
-    background-color: #28a745;
-}
-
-#surveyPage button:hover {
-    background-color: #218838;
+    color: #555;
+    font-style: italic;
+    margin-top: 15px;
 }
