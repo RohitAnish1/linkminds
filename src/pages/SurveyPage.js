@@ -1,9 +1,12 @@
-// src/components/SurveyPage.js
 import React, { useState } from 'react';
 import { db } from '../firebase';
 import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { matchUsers } from '../matching'; // Assuming matching logic is in matching.js
+import { matchUsers } from '../matching';
 import './SurveyPage.css';
+
+const inappropriateWords = [
+  'ass', 'hole', 'fuck', 'sex','myre','thendi','patti' // Add more words as needed
+];
 
 // MatchResults Component
 const MatchResults = ({ match }) => {
@@ -33,7 +36,8 @@ const MatchResults = ({ match }) => {
 
 // SurveyForm Component
 const SurveyForm = ({ onMatch }) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState('');
   const [questions, setQuestions] = useState({
     socialPreference: '',
@@ -42,22 +46,25 @@ const SurveyForm = ({ onMatch }) => {
   });
 
   const hobbiesOptions = [
-    'Reading',
-    'Traveling',
-    'Sports',
-    'Music',
-    'Art',
-    'Gaming',
-    'Cooking',
-    'Dancing',
-    'Photography',
-    'Fitness',
+    'Reading', 'Traveling', 'Sports', 'Music', 'Art', 
+    'Gaming', 'Cooking', 'Dancing', 'Photography', 'Fitness',
   ];
+
+  const flagInappropriateWords = (name) => {
+    return inappropriateWords.some(word => name.toLowerCase().includes(word));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Check if the user is already matched
-    const matchedUsersQuery = query(collection(db, 'matchedUsers'), where('name', '==', name));
+    if (flagInappropriateWords(firstName) || flagInappropriateWords(lastName)) {
+      alert('The name contains inappropriate words. Please use a different name.');
+      return;
+    }
+
+    const fullName = `${firstName} ${lastName}`;
+
+    const matchedUsersQuery = query(collection(db, 'matchedUsers'), where('name', '==', fullName));
     const matchedUsersSnapshot = await getDocs(matchedUsersQuery);
 
     if (!matchedUsersSnapshot.empty) {
@@ -65,19 +72,16 @@ const SurveyForm = ({ onMatch }) => {
       return;
     }
 
-    // Save the survey data
     await addDoc(collection(db, 'users'), {
-      name,
+      name: fullName,
       gender,
       ...questions,
     });
     alert('Survey submitted!');
 
-    // Trigger matching and pass the result to the parent component
-    const match = await matchUsers(name); // Pass the user's name to match them with others
+    const match = await matchUsers(fullName);
 
     if (match) {
-      // Add the matched pair to the matchedUsers collection
       await addDoc(collection(db, 'matchedUsers'), {
         name: match.name,
         matchedWith: match.matchedUser.name,
@@ -88,7 +92,6 @@ const SurveyForm = ({ onMatch }) => {
         matchedWith: match.name,
       });
 
-      // Call the onMatch function to update the UI
       onMatch(match);
     }
   };
@@ -97,9 +100,16 @@ const SurveyForm = ({ onMatch }) => {
     <form onSubmit={handleSubmit}>
       <input
         type="text"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Name"
+        value={firstName}
+        onChange={(e) => setFirstName(e.target.value)}
+        placeholder="First Name"
+        required
+      />
+      <input
+        type="text"
+        value={lastName}
+        onChange={(e) => setLastName(e.target.value)}
+        placeholder="Last Name"
         required
       />
       <select
@@ -131,17 +141,17 @@ const SurveyForm = ({ onMatch }) => {
         <option value="Outdoor">Outdoor</option>
       </select>
       <select
-          value={questions.hobbies}
-          onChange={(e) => setQuestions({ ...questions, hobbies: e.target.value })}
-          required
-        >
-          <option value="">Select Your Hobby</option>
-          {hobbiesOptions.map((hobby) => (
-            <option key={hobby} value={hobby}>
-              {hobby}
-            </option>
-          ))}
-        </select>
+        value={questions.hobbies}
+        onChange={(e) => setQuestions({ ...questions, hobbies: e.target.value })}
+        required
+      >
+        <option value="">Select Your Hobby</option>
+        {hobbiesOptions.map((hobby) => (
+          <option key={hobby} value={hobby}>
+            {hobby}
+          </option>
+        ))}
+      </select>
       <button type="submit">Submit</button>
     </form>
   );
@@ -156,7 +166,7 @@ export const SurveyPage = () => {
   };
 
   return (
-    <div className="survey-page"> {/* Added this wrapper */}
+    <div className="survey-page">
       <h1>Survey Page</h1>
       <SurveyForm onMatch={handleMatch} />
       {match && <MatchResults match={match} />}
