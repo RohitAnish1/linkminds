@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { addDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { matchUsers } from '../matching';
 import './SurveyPage.css';
 
 const inappropriateWords = [
-  'ass', 'hole', 'fuck', 'sex','myre','thendi','patti' // Add more words as needed
+  'ass', 'hole', 'fuck', 'sex', 'myre', 'thendi', 'patti' // Add more words as needed
 ];
 
 // MatchResults Component
@@ -35,7 +35,7 @@ const MatchResults = ({ match }) => {
 };
 
 // SurveyForm Component
-const SurveyForm = ({ onMatch }) => {
+const SurveyForm = ({ onMatch, user }) => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState('');
@@ -44,9 +44,26 @@ const SurveyForm = ({ onMatch }) => {
     activityPreference: '',
     hobbies: '',
   });
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  useEffect(() => {
+    const checkSubmissionStatus = async () => {
+      if (user) {
+        const fullName = `${firstName} ${lastName}`;
+        const matchedUsersQuery = query(collection(db, 'matchedUsers'), where('name', '==', fullName));
+        const matchedUsersSnapshot = await getDocs(matchedUsersQuery);
+
+        if (!matchedUsersSnapshot.empty) {
+          setHasSubmitted(true);
+        }
+      }
+    };
+
+    checkSubmissionStatus();
+  }, [user, firstName, lastName]);
 
   const hobbiesOptions = [
-    'Reading', 'Traveling', 'Sports', 'Music', 'Art', 
+    'Reading', 'Traveling', 'Sports', 'Music', 'Art',
     'Gaming', 'Cooking', 'Dancing', 'Photography', 'Fitness',
   ];
 
@@ -57,20 +74,17 @@ const SurveyForm = ({ onMatch }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (hasSubmitted) {
+      alert('You have already submitted the survey.');
+      return;
+    }
+
     if (flagInappropriateWords(firstName) || flagInappropriateWords(lastName)) {
       alert('The name contains inappropriate words. Please use a different name.');
       return;
     }
 
     const fullName = `${firstName} ${lastName}`;
-
-    const matchedUsersQuery = query(collection(db, 'matchedUsers'), where('name', '==', fullName));
-    const matchedUsersSnapshot = await getDocs(matchedUsersQuery);
-
-    if (!matchedUsersSnapshot.empty) {
-      alert('You have already been matched!');
-      return;
-    }
 
     await addDoc(collection(db, 'users'), {
       name: fullName,
@@ -94,6 +108,8 @@ const SurveyForm = ({ onMatch }) => {
 
       onMatch(match);
     }
+
+    setHasSubmitted(true);
   };
 
   return (
@@ -158,7 +174,7 @@ const SurveyForm = ({ onMatch }) => {
 };
 
 // Main SurveyPage Component
-export const SurveyPage = () => {
+export const SurveyPage = ({ user }) => {
   const [match, setMatch] = useState(null);
 
   const handleMatch = (newMatch) => {
@@ -168,8 +184,9 @@ export const SurveyPage = () => {
   return (
     <div className="survey-page">
       <h1>Survey Page</h1>
-      <SurveyForm onMatch={handleMatch} />
+      <SurveyForm onMatch={handleMatch} user={user} />
       {match && <MatchResults match={match} />}
     </div>
   );
 };
+  
